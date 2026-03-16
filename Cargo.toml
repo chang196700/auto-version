@@ -8,13 +8,29 @@ repository = "https://github.com/yourname/auto-version"
 keywords = ["versioning", "semver", "git", "build", "cmake"]
 categories = ["development-tools::build-utils", "command-line-utilities"]
 
+# ── Feature flags ─────────────────────────────────────────────────────────────
 [features]
-default = ["cli"]
-# CLI binary (depends on clap)
+# Default: everything enabled — full-featured binary
+default = ["cli", "yaml-config", "template", "unicode"]
+
+# CLI binary (pulls in clap)
 cli = ["dep:clap"]
-# build.rs helper mode: emit cargo: directives automatically
+
+# YAML config file support
+yaml-config = ["dep:serde_yaml"]
+
+# Full Tera template engine; without this flag the built-in {{ var }}
+# substitution is used instead (no extra deps, covers most use-cases)
+template = ["dep:tera"]
+
+# Unicode support in regex (branch-rule matching) and clap help text.
+# Disable to trim ~300 KiB from the binary when ASCII patterns are sufficient.
+unicode = ["regex/unicode", "clap?/unicode"]
+
+# build.rs helper utilities
 build-rs = []
 
+# ── Targets ───────────────────────────────────────────────────────────────────
 [[bin]]
 name = "auto-version"
 path = "src/main.rs"
@@ -24,33 +40,42 @@ required-features = ["cli"]
 name = "auto_version"
 path = "src/lib.rs"
 
+# ── Dependencies ──────────────────────────────────────────────────────────────
 [dependencies]
-# CLI (optional — only needed when building the binary)
-clap = { version = "4", features = ["derive"], optional = true }
+# CLI (optional, needed only for the binary)
+clap = { version = "4", features = ["std", "derive", "color", "error-context"], default-features = false, optional = true }
 
 # Serialization
-serde = { version = "1", features = ["derive"] }
-toml = "0.8"
+serde      = { version = "1", features = ["derive"] }
+toml       = "0.8"
 serde_json = "1"
-serde_yaml = "0.9"
+serde_yaml = { version = "0.9", optional = true }
 
-# Template engine
-tera = "1"
+# Full Tera template engine (optional; lightweight built-in is always available)
+tera = { version = "1", optional = true }
 
 # Error handling
-anyhow = "1"
+anyhow    = "1"
 thiserror = "2"
 
-# SemVer parsing
+# SemVer
 semver = { version = "1", features = ["serde"] }
 
-# Date/time
-chrono = { version = "0.4", features = ["serde"] }
+# Date/time — no WASM, no oldtime, no bundled tz database
+chrono = { version = "0.4", features = ["clock", "std", "serde"], default-features = false }
 
-# Regex (branch rule matching, C header parsing)
-regex = "1"
+# Regex — unicode sub-features are gated behind the `unicode` feature flag
+regex = { version = "1", features = ["std"], default-features = false }
 
 [dev-dependencies]
 assert_cmd = "2"
 predicates = "3"
-tempfile = "3"
+tempfile   = "3"
+
+# ── Release profile: optimise for minimum size ────────────────────────────────
+[profile.release]
+opt-level     = "z"       # optimise for size, not speed
+lto           = "fat"     # whole-program link-time optimisation
+codegen-units = 1         # single codegen unit → best inlining / DCE
+strip         = "symbols" # strip all debug and symbol info
+panic         = "abort"   # no unwinding machinery

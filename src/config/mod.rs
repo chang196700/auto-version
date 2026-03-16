@@ -9,7 +9,10 @@ pub use schema::{
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
+#[cfg(feature = "yaml-config")]
 const CONFIG_FILE_NAMES: &[&str] = &["auto-version.toml", "auto-version.yaml", "auto-version.json"];
+#[cfg(not(feature = "yaml-config"))]
+const CONFIG_FILE_NAMES: &[&str] = &["auto-version.toml", "auto-version.json"];
 
 /// Search for a config file starting from `start_dir`, walking up to the filesystem root.
 pub fn find_config_file(start_dir: &Path) -> Option<PathBuf> {
@@ -36,8 +39,20 @@ pub fn load(path: &Path) -> Result<Config> {
     match ext {
         "toml" => toml::from_str(&content)
             .with_context(|| format!("parsing TOML config: {}", path.display())),
-        "yaml" | "yml" => serde_yaml::from_str(&content)
-            .with_context(|| format!("parsing YAML config: {}", path.display())),
+        "yaml" | "yml" => {
+            #[cfg(feature = "yaml-config")]
+            {
+                serde_yaml::from_str(&content)
+                    .with_context(|| format!("parsing YAML config: {}", path.display()))
+            }
+            #[cfg(not(feature = "yaml-config"))]
+            {
+                anyhow::bail!(
+                    "YAML config support is not enabled. \
+                     Rebuild with `--features yaml-config`, or use a .toml config file."
+                )
+            }
+        }
         "json" => serde_json::from_str(&content)
             .with_context(|| format!("parsing JSON config: {}", path.display())),
         other => anyhow::bail!("unsupported config format: .{}", other),

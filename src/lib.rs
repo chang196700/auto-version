@@ -71,27 +71,11 @@ impl VersionInfo {
     }
 
     /// Render a template string using VersionInfo fields as context.
+    /// Delegates to `outputs::template::render_template`, which uses the full
+    /// Tera engine when the `template` feature is enabled, or the built-in
+    /// lightweight `{{ var }}` substitution otherwise.
     pub fn render_template(&self, template: &str) -> Result<String> {
-        let mut ctx = tera::Context::new();
-        ctx.insert("major", &self.major);
-        ctx.insert("minor", &self.minor);
-        ctx.insert("patch", &self.patch);
-        ctx.insert("pre_release", &self.pre_release);
-        ctx.insert("build_metadata", &self.build_metadata);
-        ctx.insert("major_minor_patch", &self.major_minor_patch);
-        ctx.insert("sem_ver", &self.sem_ver);
-        ctx.insert("full_sem_ver", &self.full_sem_ver);
-        ctx.insert("informational_version", &self.informational_version);
-        ctx.insert("branch_name", &self.branch_name);
-        ctx.insert("branch_name_slug", &self.branch_name_slug);
-        ctx.insert("sha", &self.sha);
-        ctx.insert("short_sha", &self.short_sha);
-        ctx.insert("commits_since_tag", &self.commits_since_tag);
-        ctx.insert("uncommitted_changes", &self.uncommitted_changes);
-        ctx.insert("commit_date", &self.commit_date);
-        ctx.insert("build_date", &self.build_date);
-        ctx.insert("source", &self.source);
-        tera::Tera::one_off(template, &ctx, false).map_err(Into::into)
+        outputs::template::render_template(self, template)
     }
 }
 
