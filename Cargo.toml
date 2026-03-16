@@ -43,7 +43,7 @@ path = "src/lib.rs"
 # ── Dependencies ──────────────────────────────────────────────────────────────
 [dependencies]
 # CLI (optional, needed only for the binary)
-clap = { version = "4", features = ["std", "derive", "color", "error-context"], default-features = false, optional = true }
+clap = { version = "4", features = ["std", "derive", "help", "usage", "color", "error-context"], default-features = false, optional = true }
 
 # Serialization
 serde      = { version = "1", features = ["derive"] }
