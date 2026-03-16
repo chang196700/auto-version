@@ -17,6 +17,7 @@ const TOOL_VERSION: &str = concat!(
     name = "auto-version",
     about = "Multi-format, multi-source automatic version generator",
     version = TOOL_VERSION,
+    arg_required_else_help = true,
 )]
 struct Cli {
     /// Path to config file (auto-discovered if omitted)
