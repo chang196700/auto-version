@@ -1,0 +1,11 @@
+[package]
+name = "my-rust-app"
+version = "0.1.0"
+edition = "2024"
+
+[build-dependencies]
+# Add auto-version as a build dependency (via git submodule or path).
+# If using as a git submodule at vendor/auto-version:
+auto-version = { path = "../../", default-features = false, features = ["build-rs"] }
+
+[dependencies]

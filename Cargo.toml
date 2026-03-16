@@ -4,18 +4,29 @@ version = "0.1.0"
 edition = "2024"
 description = "Multi-format, multi-source automatic version generator"
 license = "MIT"
+repository = "https://github.com/yourname/auto-version"
+keywords = ["versioning", "semver", "git", "build", "cmake"]
+categories = ["development-tools::build-utils", "command-line-utilities"]
+
+[features]
+default = ["cli"]
+# CLI binary (depends on clap)
+cli = ["dep:clap"]
+# build.rs helper mode: emit cargo: directives automatically
+build-rs = []
 
 [[bin]]
 name = "auto-version"
 path = "src/main.rs"
+required-features = ["cli"]
 
 [lib]
 name = "auto_version"
 path = "src/lib.rs"
 
 [dependencies]
-# CLI
-clap = { version = "4", features = ["derive"] }
+# CLI (optional — only needed when building the binary)
+clap = { version = "4", features = ["derive"], optional = true }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }

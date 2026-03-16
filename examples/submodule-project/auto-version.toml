@@ -1,0 +1,20 @@
+# auto-version.toml for the submodule example
+
+[source]
+providers = ["git"]
+
+[source.git]
+tag_pattern = "v{major}.{minor}.{patch}"
+dirty_suffix = "-dirty"
+
+[source.git.branch_rules]
+"^(main|master)$"  = { label = "",                   increment = "patch" }
+"^develop$"         = { label = "alpha.{commits}",    increment = "minor" }
+"^feature[s]?[/-]" = { label = "feat.{branch_slug}", increment = "minor" }
+"^release[s]?[/-]" = { label = "rc.{commits}",       increment = "none"  }
+"^hotfix(es)?[/-]" = { label = "hotfix.{short_sha}",  increment = "patch" }
+
+# JSON to stdout (default)
+[[output]]
+format = "json"
+target = "stdout"

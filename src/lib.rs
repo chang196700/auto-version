@@ -3,6 +3,7 @@ pub mod formats;
 pub mod outputs;
 pub mod sources;
 pub mod writers;
+pub mod build_rs;
 
 use anyhow::Result;
 use config::Config;

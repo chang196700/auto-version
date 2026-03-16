@@ -1,12 +1,22 @@
+#![cfg(feature = "cli")]
+
 use std::path::PathBuf;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+
+// Build-time version info injected by build.rs
+const TOOL_VERSION: &str = concat!(
+    env!("CARGO_PKG_VERSION"),
+    " (",
+    env!("GIT_SHORT_SHA", "unknown"),
+    ")",
+);
 
 #[derive(Parser)]
 #[command(
     name = "auto-version",
     about = "Multi-format, multi-source automatic version generator",
-    version
+    version = TOOL_VERSION,
 )]
 struct Cli {
     /// Path to config file (auto-discovered if omitted)
