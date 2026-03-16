@@ -63,6 +63,20 @@ jobs:
         if: matrix.cross == true
         run: cross build --release --target ${{ matrix.target }}
 
+      - name: Install UPX
+        uses: crazy-max/ghaction-upx@v3
+        with:
+          install-only: true
+
+      - name: Compress binary with UPX
+        shell: bash
+        run: |
+          BINARY="target/${{ matrix.target }}/release/${{ steps.binary.outputs.name }}"
+          # UPX does not support aarch64 Linux ELF well; skip for that target
+          if [[ "${{ matrix.target }}" != "aarch64-unknown-linux-gnu" ]]; then
+            upx --best --lzma "$BINARY" || echo "UPX compression failed (non-fatal), continuing..."
+          fi
+
       - name: Determine binary name
         id: binary
         shell: bash
