@@ -36,6 +36,19 @@ jobs:
       - name: Build
         run: cargo build --all-features
 
+      - name: Run auto-version on itself (dogfooding)
+        shell: bash
+        run: |
+          EXE=$([ "$RUNNER_OS" = "Windows" ] && echo "target/debug/auto-version.exe" || echo "target/debug/auto-version")
+          echo "=== auto-version version ==="
+          "$EXE" version
+          echo ""
+          echo "=== auto-version show (kv) ==="
+          "$EXE" show -f kv
+          echo ""
+          echo "=== auto-version generate (cargo_env to stdout) ==="
+          "$EXE" generate
+
       - name: Test
         run: cargo test --all-features
 
@@ -48,6 +61,9 @@ jobs:
           cargo run -- show -f json
           cargo run -- show -f c_header
           cargo run -- show -f cmake
+          cargo run -- version
+          cargo run -- version -f full
+          cargo run -- version -f json
           cargo run -- init-config
 
   clippy:

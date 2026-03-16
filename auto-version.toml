@@ -1,0 +1,28 @@
+# auto-version.toml — auto-version manages its own version (dogfooding)
+#
+# build.rs calls `auto-version generate` which reads this file and emits
+# cargo:rustc-env= lines to stdout, which Cargo picks up as build directives.
+
+[source]
+providers = ["git"]
+
+[source.git]
+tag_pattern = "v{major}.{minor}.{patch}"
+use_describe = true
+dirty_suffix = "-dirty"
+
+[source.git.branch_rules]
+"^(main|master)$"  = { label = "",                    increment = "patch" }
+"^develop$"         = { label = "alpha.{commits}",     increment = "minor" }
+"^feature[s]?[/-]" = { label = "feat.{branch_slug}",  increment = "minor" }
+"^release[s]?[/-]" = { label = "rc.{commits}",        increment = "none"  }
+"^hotfix(es)?[/-]" = { label = "hotfix.{short_sha}",  increment = "patch" }
+
+[source.git.conventional_commits]
+enabled = false
+
+# cargo_env format emits `cargo:rustc-env=KEY=VALUE` lines, which build.rs
+# captures and re-prints to Cargo so it sets compile-time env vars.
+[[output]]
+format = "cargo_env"
+target = "stdout"
