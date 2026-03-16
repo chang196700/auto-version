@@ -14,6 +14,9 @@ pub fn render(info: &VersionInfo) -> Result<String> {
     if let Some(ref sha) = info.short_sha {
         out.push_str(&format!("cargo:rustc-env=GIT_SHORT_SHA={}\n", sha));
     }
+    if let Some(ref branch) = info.branch_name {
+        out.push_str(&format!("cargo:rustc-env=GIT_BRANCH={}\n", branch));
+    }
     // Instruct cargo to re-run if .git/HEAD or refs change
     out.push_str("cargo:rerun-if-changed=.git/HEAD\n");
     out.push_str("cargo:rerun-if-changed=.git/refs\n");
