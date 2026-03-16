@@ -1,0 +1,60 @@
+# auto-version.toml — Example configuration
+# Run `auto-version init-config` to get this file.
+
+[source]
+# Ordered list of providers. First successful one wins.
+# Options: "git" | "file" | "c_header" | "env" | "toml_field"
+providers = ["git"]
+
+[source.git]
+tag_pattern = "v{major}.{minor}.{patch}"
+use_describe = true
+dirty_suffix = "-dirty"
+
+# Branch-based pre-release rules (regex → label template + increment)
+# Available template variables: {commits}, {branch_slug}, {short_sha}
+[source.git.branch_rules]
+"^(main|master)$"   = { label = "",                    increment = "patch" }
+"^develop$"          = { label = "alpha.{commits}",     increment = "minor" }
+"^feature[s]?[/-]"  = { label = "feat.{branch_slug}",  increment = "minor" }
+"^release[s]?[/-]"  = { label = "rc.{commits}",        increment = "none"  }
+"^hotfix(es)?[/-]"  = { label = "hotfix.{short_sha}",  increment = "patch" }
+
+# Optional: scan commit messages to auto-bump version
+[source.git.conventional_commits]
+enabled = false
+major_pattern = '^(feat|fix)!:|^BREAKING CHANGE'
+minor_pattern = '^feat:'
+patch_pattern = '^(fix|perf|refactor):'
+
+# ── Outputs ──────────────────────────────────────────────────────────────────
+
+# C/C++ header
+[[output]]
+format = "c_header"
+target = "file"
+path   = "include/version.h"
+
+# CMake variables (include() this in your CMakeLists.txt)
+[[output]]
+format = "cmake_vars"
+target = "file"
+path   = "cmake/version.cmake"
+
+# Makefile variables (include in your Makefile)
+[[output]]
+format = "makefile_vars"
+target = "file"
+path   = "build/version.mk"
+
+# JSON to stdout
+[[output]]
+format = "json"
+target = "stdout"
+
+# Custom template example (generates a Rust version module)
+# [[output]]
+# format        = "template"
+# target        = "file"
+# path          = "src/version.rs"
+# template_file = "templates/version.rs.tpl"
