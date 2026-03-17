@@ -23,7 +23,11 @@ fn main() {
 /// Try to run the previously-compiled auto-version binary.
 /// Returns true if the binary ran successfully and emitted version env vars.
 fn try_self_binary() -> bool {
-    let exe = if cfg!(windows) { "auto-version.exe" } else { "auto-version" };
+    let exe = if cfg!(windows) {
+        "auto-version.exe"
+    } else {
+        "auto-version"
+    };
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_default();
 
     for rel in &[
@@ -34,7 +38,10 @@ fn try_self_binary() -> bool {
         if !path.exists() {
             continue;
         }
-        let Ok(out) = Command::new(&path).arg("generate").current_dir(&manifest_dir).output()
+        let Ok(out) = Command::new(&path)
+            .arg("generate")
+            .current_dir(&manifest_dir)
+            .output()
         else {
             continue;
         };
@@ -57,8 +64,8 @@ fn try_self_binary() -> bool {
         // Emit a combined display string used by the --version flag and help header.
         match (version.is_empty(), sha.is_empty()) {
             (false, false) => println!("cargo:rustc-env=TOOL_VERSION={version} ({sha})"),
-            (false, true)  => println!("cargo:rustc-env=TOOL_VERSION={version}"),
-            _              => {}
+            (false, true) => println!("cargo:rustc-env=TOOL_VERSION={version}"),
+            _ => {}
         }
         return true;
     }
@@ -68,9 +75,9 @@ fn try_self_binary() -> bool {
 /// Fallback used on first build (no binary compiled yet).
 fn fallback_git_version() {
     let short_sha = git(&["rev-parse", "--short", "HEAD"]).unwrap_or_else(|| "unknown".into());
-    let branch    = git(&["symbolic-ref", "--short", "HEAD"]).unwrap_or_else(|| "unknown".into());
-    let dirty     = is_dirty();
-    let date      = git(&["log", "-1", "--format=%cd", "--date=short"]).unwrap_or_default();
+    let branch = git(&["symbolic-ref", "--short", "HEAD"]).unwrap_or_else(|| "unknown".into());
+    let dirty = is_dirty();
+    let date = git(&["log", "-1", "--format=%cd", "--date=short"]).unwrap_or_default();
 
     let version_base = env!("CARGO_PKG_VERSION");
     let version = if dirty {
@@ -106,4 +113,3 @@ fn is_dirty() -> bool {
         .map(|o| !o.stdout.is_empty())
         .unwrap_or(false)
 }
-

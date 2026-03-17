@@ -1,6 +1,6 @@
-use anyhow::{bail, Context, Result};
 use crate::config::Config;
 use crate::VersionInfo;
+use anyhow::{bail, Context, Result};
 
 pub fn resolve(config: &Config) -> Result<VersionInfo> {
     let cfg = &config.source.env;
@@ -48,8 +48,7 @@ fn read_env_u64(var_name: &str, _fallback: &str) -> Result<u64> {
     if var_name.is_empty() {
         return Ok(0);
     }
-    let val = std::env::var(var_name)
-        .with_context(|| format!("env var '{}' not set", var_name))?;
+    let val = std::env::var(var_name).with_context(|| format!("env var '{}' not set", var_name))?;
     val.parse::<u64>()
         .with_context(|| format!("parsing env var '{}' = '{}' as integer", var_name, val))
 }
@@ -59,8 +58,16 @@ fn make_info(ver: semver::Version) -> VersionInfo {
         major: ver.major,
         minor: ver.minor,
         patch: ver.patch,
-        pre_release: if ver.pre.is_empty() { None } else { Some(ver.pre.to_string()) },
-        build_metadata: if ver.build.is_empty() { None } else { Some(ver.build.to_string()) },
+        pre_release: if ver.pre.is_empty() {
+            None
+        } else {
+            Some(ver.pre.to_string())
+        },
+        build_metadata: if ver.build.is_empty() {
+            None
+        } else {
+            Some(ver.build.to_string())
+        },
         major_minor_patch: String::new(),
         sem_ver: String::new(),
         full_sem_ver: String::new(),

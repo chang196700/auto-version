@@ -4,7 +4,13 @@ use anyhow::{Context, Result};
 ///
 /// Layout string: `"major:8,minor:8,patch:16"` means major uses bits[31:24],
 /// minor bits[23:16], patch bits[15:0]. Total must not exceed 64 bits.
-pub fn format_hex(major: u64, minor: u64, patch: u64, layout: &str, prefix: &str) -> Result<String> {
+pub fn format_hex(
+    major: u64,
+    minor: u64,
+    patch: u64,
+    layout: &str,
+    prefix: &str,
+) -> Result<String> {
     let parts = parse_layout(layout)?;
     let mut value: u64 = 0;
     for (component, bits) in &parts {
@@ -12,9 +18,13 @@ pub fn format_hex(major: u64, minor: u64, patch: u64, layout: &str, prefix: &str
             "major" => major,
             "minor" => minor,
             "patch" => patch,
-            other   => anyhow::bail!("unknown component in hex layout: {}", other),
+            other => anyhow::bail!("unknown component in hex layout: {}", other),
         };
-        let mask = if *bits >= 64 { u64::MAX } else { (1u64 << bits) - 1 };
+        let mask = if *bits >= 64 {
+            u64::MAX
+        } else {
+            (1u64 << bits) - 1
+        };
         value = (value << bits) | (component_val & mask);
     }
 

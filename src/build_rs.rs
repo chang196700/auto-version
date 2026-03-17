@@ -37,7 +37,10 @@ pub fn run_with_config(config: &Config) {
             println!("cargo:rustc-env=VERSION_MINOR={}", info.minor);
             println!("cargo:rustc-env=VERSION_PATCH={}", info.patch);
             println!("cargo:rustc-env=VERSION_FULL={}", info.full_sem_ver);
-            println!("cargo:rustc-env=VERSION_INFO={}", info.informational_version);
+            println!(
+                "cargo:rustc-env=VERSION_INFO={}",
+                info.informational_version
+            );
             println!("cargo:rustc-env=BUILD_DATE={}", info.build_date);
 
             if let Some(ref sha) = info.short_sha {
@@ -71,8 +74,7 @@ pub fn run_with_config(config: &Config) {
 
 fn find_and_load_config() -> Config {
     // CARGO_MANIFEST_DIR is set by cargo when running build.rs
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
-        .unwrap_or_else(|_| ".".into());
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".into());
     let start = std::path::Path::new(&manifest_dir);
 
     if let Some(path) = crate::config::find_config_file(start) {

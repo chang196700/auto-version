@@ -1,6 +1,6 @@
-use anyhow::{bail, Context, Result};
 use crate::config::Config;
 use crate::VersionInfo;
+use anyhow::{bail, Context, Result};
 
 pub fn resolve(config: &Config) -> Result<VersionInfo> {
     let cfg = &config.source.file;
@@ -17,8 +17,16 @@ pub fn resolve(config: &Config) -> Result<VersionInfo> {
         major: parsed.major,
         minor: parsed.minor,
         patch: parsed.patch,
-        pre_release: if parsed.pre.is_empty() { None } else { Some(parsed.pre.to_string()) },
-        build_metadata: if parsed.build.is_empty() { None } else { Some(parsed.build.to_string()) },
+        pre_release: if parsed.pre.is_empty() {
+            None
+        } else {
+            Some(parsed.pre.to_string())
+        },
+        build_metadata: if parsed.build.is_empty() {
+            None
+        } else {
+            Some(parsed.build.to_string())
+        },
         major_minor_patch: String::new(),
         sem_ver: String::new(),
         full_sem_ver: String::new(),

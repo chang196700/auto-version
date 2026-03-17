@@ -1,15 +1,15 @@
+pub mod c_header;
+pub mod cargo_env;
+pub mod cmake_vars;
 pub mod json;
 pub mod kv;
-pub mod c_header;
-pub mod cmake_vars;
 pub mod makefile_vars;
-pub mod cargo_env;
 pub mod template;
 
-use anyhow::{bail, Context, Result};
-use std::path::Path;
 use crate::config::{Config, OutputConfig};
 use crate::VersionInfo;
+use anyhow::{bail, Context, Result};
+use std::path::Path;
 
 /// Run all configured output blocks.
 pub fn run_all(config: &Config, info: &VersionInfo) -> Result<()> {
@@ -20,28 +20,27 @@ pub fn run_all(config: &Config, info: &VersionInfo) -> Result<()> {
         return Ok(());
     }
     for (i, output_cfg) in config.output.iter().enumerate() {
-        run_one(output_cfg, info)
-            .with_context(|| format!("output block #{}", i))?;
+        run_one(output_cfg, info).with_context(|| format!("output block #{}", i))?;
     }
     Ok(())
 }
 
 fn run_one(cfg: &OutputConfig, info: &VersionInfo) -> Result<()> {
     let rendered = match cfg.format.as_str() {
-        "json"          => json::render(info)?,
-        "kv"            => kv::render(info)?,
-        "c_header"      => c_header::render(info, &cfg.variables)?,
-        "cmake_vars"    => cmake_vars::render(info, &cfg.variables)?,
+        "json" => json::render(info)?,
+        "kv" => kv::render(info)?,
+        "c_header" => c_header::render(info, &cfg.variables)?,
+        "cmake_vars" => cmake_vars::render(info, &cfg.variables)?,
         "makefile_vars" => makefile_vars::render(info)?,
-        "cargo_env"     => cargo_env::render(info)?,
-        "template"      => template::render(info, cfg)?,
-        other           => bail!("unknown output format: {}", other),
+        "cargo_env" => cargo_env::render(info)?,
+        "template" => template::render(info, cfg)?,
+        other => bail!("unknown output format: {}", other),
     };
 
     match cfg.target.as_str() {
         "stdout" => write_stdout(&rendered),
-        "file"   => write_file(cfg.path.as_deref(), &rendered)?,
-        other    => bail!("unknown output target: {}", other),
+        "file" => write_file(cfg.path.as_deref(), &rendered)?,
+        other => bail!("unknown output target: {}", other),
     }
     Ok(())
 }

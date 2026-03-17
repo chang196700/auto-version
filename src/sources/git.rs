@@ -12,10 +12,10 @@ pub fn resolve(config: &Config) -> Result<VersionInfo> {
     let cfg = &config.source.git;
 
     // ── 1. Gather raw git information ────────────────────────────────────────
-    let sha       = git_output(&["rev-parse", "HEAD"]).ok();
+    let sha = git_output(&["rev-parse", "HEAD"]).ok();
     let short_sha = git_output(&["rev-parse", "--short", "HEAD"]).ok();
-    let branch    = current_branch();
-    let dirty     = is_dirty();
+    let branch = current_branch();
+    let dirty = is_dirty();
     let commit_date = git_output(&["log", "-1", "--format=%cs"]).ok(); // YYYY-MM-DD
 
     // ── 2. Find the nearest version tag ──────────────────────────────────────
@@ -29,7 +29,9 @@ pub fn resolve(config: &Config) -> Result<VersionInfo> {
     let (final_major, final_minor, final_patch) = if cfg.conventional_commits.enabled {
         apply_conventional_commits_bump(
             cfg,
-            base_major, base_minor, base_patch,
+            base_major,
+            base_minor,
+            base_patch,
             commits_since_tag.unwrap_or(0),
         )?
     } else {
@@ -51,7 +53,11 @@ pub fn resolve(config: &Config) -> Result<VersionInfo> {
 
     // ── 7. Assemble VersionInfo ───────────────────────────────────────────────
     let branch_name_slug = branch.as_deref().map(slugify);
-    let uncommitted_changes = if dirty { count_uncommitted_changes() } else { Some(0) };
+    let uncommitted_changes = if dirty {
+        count_uncommitted_changes()
+    } else {
+        Some(0)
+    };
 
     let info = VersionInfo {
         major: final_major,
@@ -191,7 +197,11 @@ fn build_pre_release_label(
 ) -> Option<String> {
     let template = label_template?;
     if template.is_empty() {
-        return if dirty { Some(dirty_suffix.trim_start_matches('-').to_string()) } else { None };
+        return if dirty {
+            Some(dirty_suffix.trim_start_matches('-').to_string())
+        } else {
+            None
+        };
     }
 
     let branch_slug = branch.map(slugify).unwrap_or_default();
@@ -210,7 +220,9 @@ fn build_pre_release_label(
 
 fn apply_conventional_commits_bump(
     cfg: &GitSourceConfig,
-    major: u64, minor: u64, patch: u64,
+    major: u64,
+    minor: u64,
+    patch: u64,
     commits_since_tag: u64,
 ) -> Result<(u64, u64, u64)> {
     if commits_since_tag == 0 {
@@ -235,9 +247,13 @@ fn apply_conventional_commits_bump(
         if major_rx.as_ref().map(|r| r.is_match(line)).unwrap_or(false) {
             bump = BumpLevel::Major;
             break;
-        } else if minor_rx.as_ref().map(|r| r.is_match(line)).unwrap_or(false) && bump < BumpLevel::Minor {
+        } else if minor_rx.as_ref().map(|r| r.is_match(line)).unwrap_or(false)
+            && bump < BumpLevel::Minor
+        {
             bump = BumpLevel::Minor;
-        } else if patch_rx.as_ref().map(|r| r.is_match(line)).unwrap_or(false) && bump < BumpLevel::Patch {
+        } else if patch_rx.as_ref().map(|r| r.is_match(line)).unwrap_or(false)
+            && bump < BumpLevel::Patch
+        {
             bump = BumpLevel::Patch;
         }
     }
@@ -246,12 +262,17 @@ fn apply_conventional_commits_bump(
         BumpLevel::Major => (major + 1, 0, 0),
         BumpLevel::Minor => (major, minor + 1, 0),
         BumpLevel::Patch => (major, minor, patch + 1),
-        BumpLevel::None  => (major, minor, patch),
+        BumpLevel::None => (major, minor, patch),
     })
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
-enum BumpLevel { None, Patch, Minor, Major }
+enum BumpLevel {
+    None,
+    Patch,
+    Minor,
+    Major,
+}
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
-use anyhow::{bail, Context, Result};
 use crate::config::Config;
 use crate::VersionInfo;
+use anyhow::{bail, Context, Result};
 
 pub fn resolve(config: &Config) -> Result<VersionInfo> {
     let cfg = &config.source.toml_field;
@@ -9,10 +9,14 @@ pub fn resolve(config: &Config) -> Result<VersionInfo> {
     }
     let content = std::fs::read_to_string(&cfg.path)
         .with_context(|| format!("reading TOML file: {}", cfg.path))?;
-    let doc: toml::Value = toml::from_str(&content)
-        .with_context(|| format!("parsing TOML: {}", cfg.path))?;
+    let doc: toml::Value =
+        toml::from_str(&content).with_context(|| format!("parsing TOML: {}", cfg.path))?;
 
-    let field_path = if cfg.field.is_empty() { "package.version" } else { &cfg.field };
+    let field_path = if cfg.field.is_empty() {
+        "package.version"
+    } else {
+        &cfg.field
+    };
     let version_str = navigate_toml(&doc, field_path)
         .with_context(|| format!("field '{}' not found in '{}'", field_path, cfg.path))?;
 
@@ -23,8 +27,16 @@ pub fn resolve(config: &Config) -> Result<VersionInfo> {
         major: ver.major,
         minor: ver.minor,
         patch: ver.patch,
-        pre_release: if ver.pre.is_empty() { None } else { Some(ver.pre.to_string()) },
-        build_metadata: if ver.build.is_empty() { None } else { Some(ver.build.to_string()) },
+        pre_release: if ver.pre.is_empty() {
+            None
+        } else {
+            Some(ver.pre.to_string())
+        },
+        build_metadata: if ver.build.is_empty() {
+            None
+        } else {
+            Some(ver.build.to_string())
+        },
         major_minor_patch: String::new(),
         sem_ver: String::new(),
         full_sem_ver: String::new(),

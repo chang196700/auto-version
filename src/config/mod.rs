@@ -1,16 +1,20 @@
 pub mod schema;
 
 pub use schema::{
-    BranchRule, Config, ConventionalCommitsConfig, EnvSourceConfig, FileSourceConfig,
-    FormatConfig, GitSourceConfig, HexFormatConfig, OutputConfig, SourceConfig,
-    TomlFieldSourceConfig, CHeaderSourceConfig,
+    BranchRule, CHeaderSourceConfig, Config, ConventionalCommitsConfig, EnvSourceConfig,
+    FileSourceConfig, FormatConfig, GitSourceConfig, HexFormatConfig, OutputConfig, SourceConfig,
+    TomlFieldSourceConfig,
 };
 
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
 #[cfg(feature = "yaml-config")]
-const CONFIG_FILE_NAMES: &[&str] = &["auto-version.toml", "auto-version.yaml", "auto-version.json"];
+const CONFIG_FILE_NAMES: &[&str] = &[
+    "auto-version.toml",
+    "auto-version.yaml",
+    "auto-version.json",
+];
 #[cfg(not(feature = "yaml-config"))]
 const CONFIG_FILE_NAMES: &[&str] = &["auto-version.toml", "auto-version.json"];
 

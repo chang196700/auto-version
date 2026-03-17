@@ -1,5 +1,5 @@
-use anyhow::Result;
 use crate::VersionInfo;
+use anyhow::Result;
 
 pub fn render(info: &VersionInfo) -> Result<String> {
     let mut out = String::new();

@@ -1,5 +1,5 @@
-use anyhow::Result;
 use crate::VersionInfo;
+use anyhow::Result;
 
 pub fn render(info: &VersionInfo, _vars: &[String]) -> Result<String> {
     let mut out = String::new();
@@ -9,9 +9,18 @@ pub fn render(info: &VersionInfo, _vars: &[String]) -> Result<String> {
     out.push_str(&format!("#define VERSION_MINOR    {}\n", info.minor));
     out.push_str(&format!("#define VERSION_PATCH    {}\n", info.patch));
     out.push_str(&format!("#define VERSION_STRING   \"{}\"\n", info.sem_ver));
-    out.push_str(&format!("#define VERSION_FULL     \"{}\"\n", info.full_sem_ver));
-    out.push_str(&format!("#define VERSION_INFO     \"{}\"\n", info.informational_version));
-    out.push_str(&format!("#define BUILD_DATE       \"{}\"\n", info.build_date));
+    out.push_str(&format!(
+        "#define VERSION_FULL     \"{}\"\n",
+        info.full_sem_ver
+    ));
+    out.push_str(&format!(
+        "#define VERSION_INFO     \"{}\"\n",
+        info.informational_version
+    ));
+    out.push_str(&format!(
+        "#define BUILD_DATE       \"{}\"\n",
+        info.build_date
+    ));
     if let Some(ref sha) = info.short_sha {
         out.push_str(&format!("#define GIT_SHORT_SHA    \"{}\"\n", sha));
     }

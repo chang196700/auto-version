@@ -1,8 +1,8 @@
 #![cfg(feature = "cli")]
 
-use std::path::PathBuf;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 // ── Compile-time version constants (set by build.rs via auto-version) ─────────
 //
@@ -13,29 +13,38 @@ use clap::{Parser, Subcommand};
 /// Short semver, e.g. `0.1.0` or `0.1.0-alpha.3`
 const VERSION_STR: &str = match option_env!("VERSION") {
     Some(v) => v,
-    None    => env!("CARGO_PKG_VERSION"),
+    None => env!("CARGO_PKG_VERSION"),
 };
 
 /// Full semver including build metadata, e.g. `0.1.0+abc1234`
 const VERSION_FULL: &str = match option_env!("VERSION_FULL") {
     Some(v) => v,
-    None    => VERSION_STR,
+    None => VERSION_STR,
 };
 
 /// Informational version: `0.1.0.Branch.main.Sha.<full-sha>`
 const VERSION_INFO: &str = match option_env!("VERSION_INFO") {
     Some(v) => v,
-    None    => VERSION_STR,
+    None => VERSION_STR,
 };
 
-const GIT_SHA:    &str = match option_env!("GIT_SHORT_SHA") { Some(v) => v, None => "unknown" };
-const GIT_BRANCH: &str = match option_env!("GIT_BRANCH")    { Some(v) => v, None => "unknown" };
-const BUILD_DATE: &str = match option_env!("BUILD_DATE")    { Some(v) => v, None => ""        };
+const GIT_SHA: &str = match option_env!("GIT_SHORT_SHA") {
+    Some(v) => v,
+    None => "unknown",
+};
+const GIT_BRANCH: &str = match option_env!("GIT_BRANCH") {
+    Some(v) => v,
+    None => "unknown",
+};
+const BUILD_DATE: &str = match option_env!("BUILD_DATE") {
+    Some(v) => v,
+    None => "",
+};
 
 /// Combined string shown by `--version` and in the help header: `0.1.0 (abc1234)`
 const TOOL_VERSION: &str = match option_env!("TOOL_VERSION") {
     Some(v) => v,
-    None    => VERSION_STR,
+    None => VERSION_STR,
 };
 
 // ── CLI definition ─────────────────────────────────────────────────────────────
@@ -122,16 +131,16 @@ fn main() -> Result<()> {
         Commands::Show { format } => {
             let info = auto_version::sources::resolve(&config)?;
             let output = match format.as_str() {
-                "semver"    => info.sem_ver.clone(),
-                "full"      => info.full_sem_ver.clone(),
-                "info"      => info.informational_version.clone(),
-                "json"      => auto_version::outputs::json::render(&info)?,
-                "kv"        => auto_version::outputs::kv::render(&info)?,
-                "c_header"  => auto_version::outputs::c_header::render(&info, &[])?,
-                "cmake"     => auto_version::outputs::cmake_vars::render(&info, &[])?,
-                "makefile"  => auto_version::outputs::makefile_vars::render(&info)?,
+                "semver" => info.sem_ver.clone(),
+                "full" => info.full_sem_ver.clone(),
+                "info" => info.informational_version.clone(),
+                "json" => auto_version::outputs::json::render(&info)?,
+                "kv" => auto_version::outputs::kv::render(&info)?,
+                "c_header" => auto_version::outputs::c_header::render(&info, &[])?,
+                "cmake" => auto_version::outputs::cmake_vars::render(&info, &[])?,
+                "makefile" => auto_version::outputs::makefile_vars::render(&info)?,
                 "cargo_env" => auto_version::outputs::cargo_env::render(&info)?,
-                other       => anyhow::bail!("unknown format: {}", other),
+                other => anyhow::bail!("unknown format: {}", other),
             };
             print!("{}", output);
         }

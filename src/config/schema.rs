@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 // ─── Top-level config ────────────────────────────────────────────────────────
 
@@ -59,23 +59,38 @@ impl Default for GitSourceConfig {
         let mut branch_rules = HashMap::new();
         branch_rules.insert(
             r"^(main|master)$".into(),
-            BranchRule { label: String::new(), increment: "patch".into() },
+            BranchRule {
+                label: String::new(),
+                increment: "patch".into(),
+            },
         );
         branch_rules.insert(
             r"^develop$".into(),
-            BranchRule { label: "alpha.{commits}".into(), increment: "minor".into() },
+            BranchRule {
+                label: "alpha.{commits}".into(),
+                increment: "minor".into(),
+            },
         );
         branch_rules.insert(
             r"^feature[s]?[/\-]".into(),
-            BranchRule { label: "feat.{branch_slug}".into(), increment: "minor".into() },
+            BranchRule {
+                label: "feat.{branch_slug}".into(),
+                increment: "minor".into(),
+            },
         );
         branch_rules.insert(
             r"^release[s]?[/\-]".into(),
-            BranchRule { label: "rc.{commits}".into(), increment: "none".into() },
+            BranchRule {
+                label: "rc.{commits}".into(),
+                increment: "none".into(),
+            },
         );
         branch_rules.insert(
             r"^hotfix(es)?[/\-]".into(),
-            BranchRule { label: "hotfix.{short_sha}".into(), increment: "patch".into() },
+            BranchRule {
+                label: "hotfix.{short_sha}".into(),
+                increment: "patch".into(),
+            },
         );
         Self {
             tag_pattern: "v{major}.{minor}.{patch}".into(),

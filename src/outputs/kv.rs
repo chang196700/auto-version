@@ -1,5 +1,5 @@
-use anyhow::Result;
 use crate::VersionInfo;
+use anyhow::Result;
 
 pub fn render(info: &VersionInfo) -> Result<String> {
     let mut out = String::new();
@@ -12,7 +12,10 @@ pub fn render(info: &VersionInfo) -> Result<String> {
     out.push_str(&format!("MAJOR_MINOR_PATCH={}\n", info.major_minor_patch));
     out.push_str(&format!("SEM_VER={}\n", info.sem_ver));
     out.push_str(&format!("FULL_SEM_VER={}\n", info.full_sem_ver));
-    out.push_str(&format!("INFORMATIONAL_VERSION={}\n", info.informational_version));
+    out.push_str(&format!(
+        "INFORMATIONAL_VERSION={}\n",
+        info.informational_version
+    ));
     if let Some(ref b) = info.branch_name {
         out.push_str(&format!("BRANCH_NAME={}\n", b));
     }

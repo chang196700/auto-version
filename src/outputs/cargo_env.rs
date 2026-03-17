@@ -1,5 +1,5 @@
-use anyhow::Result;
 use crate::VersionInfo;
+use anyhow::Result;
 
 /// Emit cargo:rustc-env lines for use in build.rs.
 pub fn render(info: &VersionInfo) -> Result<String> {
@@ -8,8 +8,14 @@ pub fn render(info: &VersionInfo) -> Result<String> {
     out.push_str(&format!("cargo:rustc-env=VERSION_MAJOR={}\n", info.major));
     out.push_str(&format!("cargo:rustc-env=VERSION_MINOR={}\n", info.minor));
     out.push_str(&format!("cargo:rustc-env=VERSION_PATCH={}\n", info.patch));
-    out.push_str(&format!("cargo:rustc-env=VERSION_FULL={}\n", info.full_sem_ver));
-    out.push_str(&format!("cargo:rustc-env=VERSION_INFO={}\n", info.informational_version));
+    out.push_str(&format!(
+        "cargo:rustc-env=VERSION_FULL={}\n",
+        info.full_sem_ver
+    ));
+    out.push_str(&format!(
+        "cargo:rustc-env=VERSION_INFO={}\n",
+        info.informational_version
+    ));
     out.push_str(&format!("cargo:rustc-env=BUILD_DATE={}\n", info.build_date));
     if let Some(ref sha) = info.short_sha {
         out.push_str(&format!("cargo:rustc-env=GIT_SHORT_SHA={}\n", sha));

@@ -1,9 +1,9 @@
+pub mod build_rs;
 pub mod config;
 pub mod formats;
 pub mod outputs;
 pub mod sources;
 pub mod writers;
-pub mod build_rs;
 
 use anyhow::Result;
 use config::Config;
@@ -65,8 +65,7 @@ impl VersionInfo {
             .as_deref()
             .map(|s| format!(".Sha.{}", s))
             .unwrap_or_default();
-        self.informational_version =
-            format!("{}{}{}", self.full_sem_ver, branch_part, sha_part);
+        self.informational_version = format!("{}{}{}", self.full_sem_ver, branch_part, sha_part);
         self
     }
 

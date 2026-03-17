@@ -1,7 +1,7 @@
-use anyhow::{bail, Context, Result};
-use regex::Regex;
 use crate::config::Config;
 use crate::VersionInfo;
+use anyhow::{bail, Context, Result};
+use regex::Regex;
 
 pub fn resolve(config: &Config) -> Result<VersionInfo> {
     let cfg = &config.source.c_header;
@@ -61,7 +61,9 @@ fn parse_define(content: &str, name: &str) -> Result<u64> {
     let cap = rx
         .captures(content)
         .with_context(|| format!("define '{}' not found in C header", name))?;
-    cap[1].parse::<u64>().with_context(|| format!("parsing define '{}'", name))
+    cap[1]
+        .parse::<u64>()
+        .with_context(|| format!("parsing define '{}'", name))
 }
 
 fn make_info(ver: semver::Version, source: &str) -> VersionInfo {
@@ -69,8 +71,16 @@ fn make_info(ver: semver::Version, source: &str) -> VersionInfo {
         major: ver.major,
         minor: ver.minor,
         patch: ver.patch,
-        pre_release: if ver.pre.is_empty() { None } else { Some(ver.pre.to_string()) },
-        build_metadata: if ver.build.is_empty() { None } else { Some(ver.build.to_string()) },
+        pre_release: if ver.pre.is_empty() {
+            None
+        } else {
+            Some(ver.pre.to_string())
+        },
+        build_metadata: if ver.build.is_empty() {
+            None
+        } else {
+            Some(ver.build.to_string())
+        },
         major_minor_patch: String::new(),
         sem_ver: String::new(),
         full_sem_ver: String::new(),
