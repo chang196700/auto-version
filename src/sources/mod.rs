@@ -4,10 +4,10 @@ pub mod file;
 pub mod git;
 pub mod toml_field;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 
-use crate::config::Config;
 use crate::VersionInfo;
+use crate::config::Config;
 
 /// Try each configured provider in order; return the first successful result.
 pub fn resolve(config: &Config) -> Result<VersionInfo> {

@@ -1,7 +1,7 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 
-use crate::config::Config;
 use crate::VersionInfo;
+use crate::config::Config;
 
 pub fn resolve(config: &Config) -> Result<VersionInfo> {
     let cfg = &config.source.file;

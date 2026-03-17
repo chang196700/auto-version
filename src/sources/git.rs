@@ -3,8 +3,8 @@ use std::process::Command;
 use anyhow::{Context, Result};
 use regex::Regex;
 
-use crate::config::{Config, GitSourceConfig};
 use crate::VersionInfo;
+use crate::config::{Config, GitSourceConfig};
 
 /// Return type for `find_version_from_tags`: (major, minor, patch, tag_sha, commits_since)
 type TagResult = (u64, u64, u64, Option<String>, Option<u64>);
@@ -179,7 +179,9 @@ fn match_branch_rule<'a>(
     branch: &str,
 ) -> Option<(String, &'a crate::config::schema::BranchRule)> {
     for (pattern, rule) in &cfg.branch_rules {
-        if let Ok(rx) = Regex::new(pattern) && rx.is_match(branch) {
+        if let Ok(rx) = Regex::new(pattern)
+            && rx.is_match(branch)
+        {
             return Some((pattern.to_string(), rule));
         }
     }

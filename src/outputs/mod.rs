@@ -8,10 +8,10 @@ pub mod template;
 
 use std::path::Path;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 
-use crate::config::{Config, OutputConfig};
 use crate::VersionInfo;
+use crate::config::{Config, OutputConfig};
 
 /// Run all configured output blocks.
 pub fn run_all(config: &Config, info: &VersionInfo) -> Result<()> {
@@ -63,7 +63,9 @@ fn write_file(path: Option<&str>, content: &str) -> Result<()> {
     }
 
     // Skip write if content is identical (preserves file mtime for incremental builds)
-    if let Ok(existing) = std::fs::read_to_string(path) && existing == content {
+    if let Ok(existing) = std::fs::read_to_string(path)
+        && existing == content
+    {
         return Ok(());
     }
 

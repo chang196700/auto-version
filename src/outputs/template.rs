@@ -1,7 +1,7 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 
-use crate::config::OutputConfig;
 use crate::VersionInfo;
+use crate::config::OutputConfig;
 
 pub fn render(info: &VersionInfo, cfg: &OutputConfig) -> Result<String> {
     let template: String = if let Some(ref t) = cfg.template {
