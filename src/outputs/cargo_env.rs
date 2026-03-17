@@ -1,5 +1,6 @@
-use crate::VersionInfo;
 use anyhow::Result;
+
+use crate::VersionInfo;
 
 /// Emit cargo:rustc-env lines for use in build.rs.
 pub fn render(info: &VersionInfo) -> Result<String> {

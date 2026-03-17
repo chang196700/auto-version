@@ -1,6 +1,7 @@
+use anyhow::{bail, Context, Result};
+
 use crate::config::Config;
 use crate::VersionInfo;
-use anyhow::{bail, Context, Result};
 
 pub fn resolve(config: &Config) -> Result<VersionInfo> {
     let cfg = &config.source.env;

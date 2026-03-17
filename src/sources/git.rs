@@ -1,6 +1,7 @@
+use std::process::Command;
+
 use anyhow::{Context, Result};
 use regex::Regex;
-use std::process::Command;
 
 use crate::config::{Config, GitSourceConfig};
 use crate::VersionInfo;

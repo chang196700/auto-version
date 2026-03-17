@@ -1,13 +1,13 @@
 pub mod schema;
 
+use std::path::{Path, PathBuf};
+
+use anyhow::{Context, Result};
 pub use schema::{
     BranchRule, CHeaderSourceConfig, Config, ConventionalCommitsConfig, EnvSourceConfig,
     FileSourceConfig, FormatConfig, GitSourceConfig, HexFormatConfig, OutputConfig, SourceConfig,
     TomlFieldSourceConfig,
 };
-
-use anyhow::{Context, Result};
-use std::path::{Path, PathBuf};
 
 #[cfg(feature = "yaml-config")]
 const CONFIG_FILE_NAMES: &[&str] = &[

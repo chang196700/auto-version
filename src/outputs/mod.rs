@@ -6,10 +6,12 @@ pub mod kv;
 pub mod makefile_vars;
 pub mod template;
 
+use std::path::Path;
+
+use anyhow::{bail, Context, Result};
+
 use crate::config::{Config, OutputConfig};
 use crate::VersionInfo;
-use anyhow::{bail, Context, Result};
-use std::path::Path;
 
 /// Run all configured output blocks.
 pub fn run_all(config: &Config, info: &VersionInfo) -> Result<()> {

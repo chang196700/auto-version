@@ -1,8 +1,9 @@
 #![cfg(feature = "cli")]
 
+use std::path::PathBuf;
+
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use std::path::PathBuf;
 
 // ── Compile-time version constants (set by build.rs via auto-version) ─────────
 //

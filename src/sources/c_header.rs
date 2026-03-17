@@ -1,7 +1,8 @@
-use crate::config::Config;
-use crate::VersionInfo;
 use anyhow::{bail, Context, Result};
 use regex::Regex;
+
+use crate::config::Config;
+use crate::VersionInfo;
 
 pub fn resolve(config: &Config) -> Result<VersionInfo> {
     let cfg = &config.source.c_header;
