@@ -86,17 +86,18 @@ jobs:
           "${{ steps.binary.outputs.path }}" show -f kv
 
       - name: Install UPX
+        if: runner.os != 'macOS'
         uses: crazy-max/ghaction-upx@v3
         with:
           install-only: true
 
       - name: Compress binary with UPX
+        if: runner.os != 'macOS'
         shell: bash
         run: |
           BINARY="${{ steps.binary.outputs.path }}"
           # UPX does not support aarch64 Linux ELF well; skip for that target
-          if [[ "${{ matrix.target }}" != "aarch64-unknown-linux-gnu" && \
-                "${{ matrix.target }}" != "aarch64-apple-darwin" ]]; then
+          if [[ "${{ matrix.target }}" != "aarch64-unknown-linux-gnu" ]]; then
             upx --best --lzma "$BINARY" || echo "UPX compression failed (non-fatal), continuing..."
           fi
 

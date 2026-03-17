@@ -6,9 +6,7 @@
 /// # Example `build.rs`
 ///
 /// ```rust,no_run
-/// fn main() {
-///     auto_version::build_rs::run_default();
-/// }
+/// auto_version::build_rs::run_default();
 /// ```
 ///
 /// Then in your crate source:
@@ -18,7 +16,6 @@
 /// const VERSION_FULL: &str = env!("VERSION_FULL");
 /// const GIT_SHA: &str = env!("GIT_SHORT_SHA");
 /// ```
-
 use crate::{config::Config, generate};
 
 /// Run auto-version with the default config (auto-discovered from workspace root)

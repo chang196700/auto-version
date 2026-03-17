@@ -6,12 +6,10 @@ pub fn resolve(config: &Config) -> Result<VersionInfo> {
     let cfg = &config.source.env;
 
     // Try full version string var first
-    if !cfg.version_var.is_empty() {
-        if let Ok(val) = std::env::var(&cfg.version_var) {
-            let ver = semver::Version::parse(&val)
-                .with_context(|| format!("parsing version from env var '{}'", cfg.version_var))?;
-            return Ok(make_info(ver));
-        }
+    if !cfg.version_var.is_empty() && let Ok(val) = std::env::var(&cfg.version_var) {
+        let ver = semver::Version::parse(&val)
+            .with_context(|| format!("parsing version from env var '{}'", cfg.version_var))?;
+        return Ok(make_info(ver));
     }
 
     let major: u64 = read_env_u64(&cfg.major_var, "MAJOR")?;

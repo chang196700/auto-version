@@ -5,6 +5,9 @@ use std::process::Command;
 use crate::config::{Config, GitSourceConfig};
 use crate::VersionInfo;
 
+/// Return type for `find_version_from_tags`: (major, minor, patch, tag_sha, commits_since)
+type TagResult = (u64, u64, u64, Option<String>, Option<u64>);
+
 pub fn resolve(config: &Config) -> Result<VersionInfo> {
     let cfg = &config.source.git;
 
@@ -120,7 +123,7 @@ fn count_uncommitted_changes() -> Option<u64> {
 }
 
 /// Find the nearest SemVer tag and return (major, minor, patch, tag_sha, commits_since).
-fn find_version_from_tags(cfg: &GitSourceConfig) -> Result<(u64, u64, u64, Option<String>, Option<u64>)> {
+fn find_version_from_tags(cfg: &GitSourceConfig) -> Result<TagResult> {
     // Build a regex from tag_pattern like "v{major}.{minor}.{patch}"
     let pattern_rx = tag_pattern_to_regex(&cfg.tag_pattern);
     let rx = Regex::new(&pattern_rx).with_context(|| "compiling tag pattern regex")?;
@@ -169,10 +172,8 @@ fn match_branch_rule<'a>(
     branch: &str,
 ) -> Option<(String, &'a crate::config::schema::BranchRule)> {
     for (pattern, rule) in &cfg.branch_rules {
-        if let Ok(rx) = Regex::new(pattern) {
-            if rx.is_match(branch) {
-                return Some((pattern.to_string(), rule));
-            }
+        if let Ok(rx) = Regex::new(pattern) && rx.is_match(branch) {
+            return Some((pattern.to_string(), rule));
         }
     }
     None
@@ -234,10 +235,10 @@ fn apply_conventional_commits_bump(
         if major_rx.as_ref().map(|r| r.is_match(line)).unwrap_or(false) {
             bump = BumpLevel::Major;
             break;
-        } else if minor_rx.as_ref().map(|r| r.is_match(line)).unwrap_or(false) {
-            if bump < BumpLevel::Minor { bump = BumpLevel::Minor; }
-        } else if patch_rx.as_ref().map(|r| r.is_match(line)).unwrap_or(false) {
-            if bump < BumpLevel::Patch { bump = BumpLevel::Patch; }
+        } else if minor_rx.as_ref().map(|r| r.is_match(line)).unwrap_or(false) && bump < BumpLevel::Minor {
+            bump = BumpLevel::Minor;
+        } else if patch_rx.as_ref().map(|r| r.is_match(line)).unwrap_or(false) && bump < BumpLevel::Patch {
+            bump = BumpLevel::Patch;
         }
     }
 

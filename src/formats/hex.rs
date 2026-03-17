@@ -19,7 +19,7 @@ pub fn format_hex(major: u64, minor: u64, patch: u64, layout: &str, prefix: &str
     }
 
     let total_bits: u32 = parts.iter().map(|(_, b)| b).sum();
-    let hex_digits = ((total_bits + 3) / 4) as usize;
+    let hex_digits = total_bits.div_ceil(4) as usize;
     Ok(format!("{}{:0>width$X}", prefix, value, width = hex_digits))
 }
 

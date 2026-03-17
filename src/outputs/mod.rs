@@ -62,10 +62,8 @@ fn write_file(path: Option<&str>, content: &str) -> Result<()> {
     }
 
     // Skip write if content is identical (preserves file mtime for incremental builds)
-    if let Ok(existing) = std::fs::read_to_string(path) {
-        if existing == content {
-            return Ok(());
-        }
+    if let Ok(existing) = std::fs::read_to_string(path) && existing == content {
+        return Ok(());
     }
 
     std::fs::write(path, content)
