@@ -16,28 +16,49 @@ env:
 jobs:
   # ── Build matrix ────────────────────────────────────────────────────────────
   build:
-    name: Build ${{ matrix.target }}
+    name: Build ${{ matrix.target }} [${{ matrix.variant }}]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-            archive: tar.gz
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
-            archive: tar.gz
-            cross: true
-          - target: x86_64-apple-darwin
-            os: macos-latest
-            archive: tar.gz
-          - target: aarch64-apple-darwin
-            os: macos-latest
-            archive: tar.gz
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-            archive: zip
+          # ── Linux x86_64 (4 variants) ──────────────────────────────────────
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest, archive: tar.gz,
+              variant: full,        cargo_flags: "" }
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest, archive: tar.gz,
+              variant: full-upx,    cargo_flags: "",                                      use_upx: true }
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest, archive: tar.gz,
+              variant: minimal,     cargo_flags: "--no-default-features --features cli" }
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest, archive: tar.gz,
+              variant: minimal-upx, cargo_flags: "--no-default-features --features cli",  use_upx: true }
+
+          # ── Linux aarch64 cross-compiled (no UPX support) ─────────────────
+          - { target: aarch64-unknown-linux-gnu, os: ubuntu-latest, archive: tar.gz,
+              cross: true, variant: full,    cargo_flags: "" }
+          - { target: aarch64-unknown-linux-gnu, os: ubuntu-latest, archive: tar.gz,
+              cross: true, variant: minimal, cargo_flags: "--no-default-features --features cli" }
+
+          # ── macOS x86_64 (no UPX support) ─────────────────────────────────
+          - { target: x86_64-apple-darwin, os: macos-latest, archive: tar.gz,
+              variant: full,    cargo_flags: "" }
+          - { target: x86_64-apple-darwin, os: macos-latest, archive: tar.gz,
+              variant: minimal, cargo_flags: "--no-default-features --features cli" }
+
+          # ── macOS aarch64 / Apple Silicon (no UPX support) ────────────────
+          - { target: aarch64-apple-darwin, os: macos-latest, archive: tar.gz,
+              variant: full,    cargo_flags: "" }
+          - { target: aarch64-apple-darwin, os: macos-latest, archive: tar.gz,
+              variant: minimal, cargo_flags: "--no-default-features --features cli" }
+
+          # ── Windows x86_64 (4 variants) ────────────────────────────────────
+          - { target: x86_64-pc-windows-msvc, os: windows-latest, archive: zip,
+              variant: full,        cargo_flags: "" }
+          - { target: x86_64-pc-windows-msvc, os: windows-latest, archive: zip,
+              variant: full-upx,    cargo_flags: "",                                      use_upx: true }
+          - { target: x86_64-pc-windows-msvc, os: windows-latest, archive: zip,
+              variant: minimal,     cargo_flags: "--no-default-features --features cli" }
+          - { target: x86_64-pc-windows-msvc, os: windows-latest, archive: zip,
+              variant: minimal-upx, cargo_flags: "--no-default-features --features cli",  use_upx: true }
 
     steps:
       - uses: actions/checkout@v4
@@ -69,14 +90,15 @@ jobs:
 
       - name: Build (native)
         if: matrix.cross != true
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }} ${{ matrix.cargo_flags }}
 
       - name: Build (cross)
         if: matrix.cross == true
-        run: cross build --release --target ${{ matrix.target }}
+        run: cross build --release --target ${{ matrix.target }} ${{ matrix.cargo_flags }}
 
       - name: Run auto-version on itself (dogfooding)
-        if: matrix.cross != true
+        # Only run for non-cross, non-upx variants (upx variants share the same binary)
+        if: matrix.cross != true && !contains(matrix.variant, 'upx')
         shell: bash
         run: |
           echo "=== auto-version version ==="
@@ -86,26 +108,23 @@ jobs:
           "${{ steps.binary.outputs.path }}" show -f kv
 
       - name: Install UPX
-        if: runner.os != 'macOS'
+        if: matrix.use_upx == true
         uses: crazy-max/ghaction-upx@v3
         with:
           install-only: true
 
       - name: Compress binary with UPX
-        if: runner.os != 'macOS'
+        if: matrix.use_upx == true
         shell: bash
         run: |
-          BINARY="${{ steps.binary.outputs.path }}"
-          # UPX does not support aarch64 Linux ELF well; skip for that target
-          if [[ "${{ matrix.target }}" != "aarch64-unknown-linux-gnu" ]]; then
-            upx --best --lzma "$BINARY" || echo "UPX compression failed (non-fatal), continuing..."
-          fi
+          upx --best --lzma "${{ steps.binary.outputs.path }}" \
+            || echo "UPX compression failed (non-fatal), continuing..."
 
       - name: Package (tar.gz)
         if: matrix.archive == 'tar.gz'
         shell: bash
         run: |
-          ARCHIVE="auto-version-${{ matrix.target }}.tar.gz"
+          ARCHIVE="auto-version-${{ matrix.target }}-${{ matrix.variant }}.tar.gz"
           tar -czf "$ARCHIVE" -C "target/${{ matrix.target }}/release" "${{ steps.binary.outputs.name }}"
           echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
 
@@ -113,14 +132,14 @@ jobs:
         if: matrix.archive == 'zip'
         shell: pwsh
         run: |
-          $archive = "auto-version-${{ matrix.target }}.zip"
+          $archive = "auto-version-${{ matrix.target }}-${{ matrix.variant }}.zip"
           Compress-Archive -Path "${{ steps.binary.outputs.path }}" -DestinationPath $archive
           "ARCHIVE=$archive" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: auto-version-${{ matrix.target }}
+          name: auto-version-${{ matrix.target }}-${{ matrix.variant }}
           path: ${{ env.ARCHIVE }}
 
   # ── Create GitHub Release ──────────────────────────────────────────────────
@@ -144,7 +163,7 @@ jobs:
 
       - name: Extract Linux binary for dogfooding
         run: |
-          tar -xzf artifacts/auto-version-x86_64-unknown-linux-gnu.tar.gz
+          tar -xzf artifacts/auto-version-x86_64-unknown-linux-gnu-full.tar.gz
           chmod +x auto-version
 
       - name: Generate version info with auto-version
@@ -180,15 +199,39 @@ jobs:
             > `${{ steps.avinfo.outputs.version_info }}`
             > commit `${{ steps.avinfo.outputs.sha }}` · ${{ steps.avinfo.outputs.date }}
 
+            ### Variants
+
+            | Variant | Features | UPX |
+            |---------|----------|-----|
+            | `full` | yaml-config, template, unicode | ✗ |
+            | `full-upx` | yaml-config, template, unicode | ✓ (Linux x86_64 & Windows only) |
+            | `minimal` | CLI only | ✗ |
+            | `minimal-upx` | CLI only | ✓ (Linux x86_64 & Windows only) |
+
             ### Download
 
-            | Platform | Architecture | Download |
-            |----------|-------------|---------|
-            | Linux    | x86_64      | `auto-version-x86_64-unknown-linux-gnu.tar.gz` |
-            | Linux    | aarch64     | `auto-version-aarch64-unknown-linux-gnu.tar.gz` |
-            | macOS    | x86_64      | `auto-version-x86_64-apple-darwin.tar.gz` |
-            | macOS    | Apple Silicon | `auto-version-aarch64-apple-darwin.tar.gz` |
-            | Windows  | x86_64      | `auto-version-x86_64-pc-windows-msvc.zip` |
+            | Platform | Architecture | full | full-upx | minimal | minimal-upx |
+            |----------|-------------|------|----------|---------|-------------|
+            | Linux    | x86_64      | [.tar.gz][lx-f] | [.tar.gz][lx-fu] | [.tar.gz][lx-m] | [.tar.gz][lx-mu] |
+            | Linux    | aarch64     | [.tar.gz][la-f] | — | [.tar.gz][la-m] | — |
+            | macOS    | x86_64      | [.tar.gz][mx-f] | — | [.tar.gz][mx-m] | — |
+            | macOS    | Apple Silicon | [.tar.gz][ma-f] | — | [.tar.gz][ma-m] | — |
+            | Windows  | x86_64      | [.zip][wx-f]  | [.zip][wx-fu]  | [.zip][wx-m]  | [.zip][wx-mu]  |
+
+            [lx-f]:  ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-x86_64-unknown-linux-gnu-full.tar.gz
+            [lx-fu]: ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-x86_64-unknown-linux-gnu-full-upx.tar.gz
+            [lx-m]:  ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-x86_64-unknown-linux-gnu-minimal.tar.gz
+            [lx-mu]: ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-x86_64-unknown-linux-gnu-minimal-upx.tar.gz
+            [la-f]:  ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-aarch64-unknown-linux-gnu-full.tar.gz
+            [la-m]:  ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-aarch64-unknown-linux-gnu-minimal.tar.gz
+            [mx-f]:  ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-x86_64-apple-darwin-full.tar.gz
+            [mx-m]:  ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-x86_64-apple-darwin-minimal.tar.gz
+            [ma-f]:  ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-aarch64-apple-darwin-full.tar.gz
+            [ma-m]:  ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-aarch64-apple-darwin-minimal.tar.gz
+            [wx-f]:  ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-x86_64-pc-windows-msvc-full.zip
+            [wx-fu]: ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-x86_64-pc-windows-msvc-full-upx.zip
+            [wx-m]:  ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-x86_64-pc-windows-msvc-minimal.zip
+            [wx-mu]: ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-x86_64-pc-windows-msvc-minimal-upx.zip
 
             ### Install via cargo
             ```sh
@@ -197,7 +240,7 @@ jobs:
 
             ### Install via shell (Linux/macOS)
             ```sh
-            curl -fsSL https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-$(uname -m)-unknown-linux-gnu.tar.gz | tar -xz
+            curl -fsSL https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/auto-version-$(uname -m)-unknown-linux-gnu-full.tar.gz | tar -xz
             sudo mv auto-version /usr/local/bin/
             ```
           files: artifacts/*
