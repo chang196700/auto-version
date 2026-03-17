@@ -165,9 +165,10 @@ fn find_version_from_tags(cfg: &GitSourceConfig) -> Result<TagResult> {
 /// Convert "v{major}.{minor}.{patch}" → a named-capture regex.
 fn tag_pattern_to_regex(pattern: &str) -> String {
     let mut rx = regex::escape(pattern);
-    rx = rx.replace(r"\{major\}", r"(?P<major>\d+)");
-    rx = rx.replace(r"\{minor\}", r"(?P<minor>\d+)");
-    rx = rx.replace(r"\{patch\}", r"(?P<patch>\d+)");
+    // Use [0-9]+ instead of \d+ so the pattern works without the unicode feature.
+    rx = rx.replace(r"\{major\}", r"(?P<major>[0-9]+)");
+    rx = rx.replace(r"\{minor\}", r"(?P<minor>[0-9]+)");
+    rx = rx.replace(r"\{patch\}", r"(?P<patch>[0-9]+)");
     format!("^{}$", rx)
 }
 
